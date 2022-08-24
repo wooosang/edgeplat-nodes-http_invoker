@@ -1,5 +1,5 @@
-import datetime, requests
-
+import requests
+from datetime import datetime
 url='http://172.18.74.41:9099/models/yansi/predict'
 
 begin = datetime.now()

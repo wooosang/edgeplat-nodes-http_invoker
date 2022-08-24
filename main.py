@@ -1,4 +1,6 @@
 import json,socket, logging, threading, traceback
+
+import requests
 import zmq,time,base64
 from PyQt5 import QtCore
 
@@ -40,8 +42,8 @@ def doStart(endpoint):
         int_len_data = int.from_bytes(len_data, "big")
         # print(int_len_data)
         data = ds.readRawData(int_len_data)
-        b64_string = base64.b64encode(data)
-        # print(b64_string.decode('UTF-8'))
+        upload_response = requests.post(config['url'], files = {"filename": data})
+        logging("Upload result: {}".format(upload_response))
         msg = dict()
         for field in msg_context:
             msg[field] = msg_context.get(field)
@@ -71,8 +73,8 @@ def start(command):
 def config(command):
     global config
     global context
-
-    logging.info("Config not supported")
+    config['url'] = command['url']
+    logging.info("Config succeed!")
     return 0
 
 
