@@ -1,5 +1,5 @@
 import json,socket, logging, threading, traceback
-
+from datetime import datetime
 import requests
 import zmq,time,base64
 from PyQt5 import QtCore
@@ -16,7 +16,7 @@ main_logger.addHandler(console_handler)
 context = zmq.Context(7)
 subSocks = []
 stopped=False
-config={}
+upload_config={}
 
 def subscribe(command):
     logging.warning('Not support subscribe!')
@@ -27,13 +27,14 @@ def doStart(endpoint):
     global context
     global subSocks
     global stopped
-    global config
+    global upload_config
     pull = context.socket(zmq.PULL)
     pull.connect(endpoint)
     stopped = False
     while not stopped:
         data = pull.recv()
         logging.debug("Received some data......")
+        begin_time = datetime.now()
         buf = QtCore.QByteArray.fromRawData(data)
         ds = QtCore.QDataStream(buf)
         msg_context = json.loads(ds.readQString())
@@ -42,8 +43,12 @@ def doStart(endpoint):
         int_len_data = int.from_bytes(len_data, "big")
         # print(int_len_data)
         data = ds.readRawData(int_len_data)
-        upload_response = requests.post(config['url'], files = {"filename": data})
-        logging("Upload result: {}".format(upload_response))
+        # files = {'file': ('slice.jpg', data)}
+        upload_response = requests.post(upload_config['url'], files = {"filename": data})
+        upload_result = upload_response.text
+        end_time = datetime.now()
+        print(upload_result)
+        # logging("Upload result: {}".format(upload_result))
         msg = dict()
         for field in msg_context:
             msg[field] = msg_context.get(field)
@@ -71,9 +76,9 @@ def start(command):
     return 0
 
 def config(command):
-    global config
+    global upload_config
     global context
-    config['url'] = command['url']
+    upload_config['url'] = command['url']
     logging.info("Config succeed!")
     return 0
 
