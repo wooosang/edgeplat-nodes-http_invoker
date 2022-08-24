@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="7090f6f0-5ac3-45d7-866f-afc8857833b2" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/test/mock_capture.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
@@ -144,7 +143,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/main.py</url>
-          <line>50</line>
+          <line>52</line>
           <option name="timeStamp" value="2" />
         </line-breakpoint>
       </breakpoints>
