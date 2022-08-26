@@ -3,6 +3,7 @@ from datetime import datetime
 import requests
 import zmq,time,base64
 from PyQt5 import QtCore
+from threading import Thread
 
 log_file_format = "[%(levelname)s] - %(asctime)s - %(name)s - : %(message)s in %(pathname)s:%(lineno)d"
 log_console_format = "[%(levelname)s] - %(asctime)s - %(pathname)s:%(lineno)d : %(message)s"
