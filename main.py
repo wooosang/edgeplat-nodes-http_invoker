@@ -96,7 +96,7 @@ def handleCommand( clientSocket):
     while True:
         try:
             data = clientSocket.recv(1024)
-            logging.debug("Received some message.")
+            # logging.debug("Received some message.")
             if not data:
                 # logging.error("收到异常指令！")
                 break
