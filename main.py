@@ -64,6 +64,8 @@ def doStart(endpoint):
             except zmq.error.Again:
                 logging.warning('暂无接收端.')
 
+    logging.debug("Stopped pull from {}".format(endpoint))
+
 
 def start(command):
     if 'endpoints' in command:
