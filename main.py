@@ -34,7 +34,10 @@ def doStart(endpoint):
     pull.connect(endpoint)
     stopped = False
     while not stopped:
-        data = pull.recv()
+        data = pull.recv(timeout=1)
+        if data==[]:
+            logging.debug("no data! continued")
+            continue
         if stopped:
             return
         logging.debug("Received some data, ready to upload..................................")
