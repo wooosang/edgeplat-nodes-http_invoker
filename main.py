@@ -33,6 +33,8 @@ def doStart(endpoint):
     stopped = False
     while not stopped:
         data = pull.recv()
+        if stopped:
+            return
         logging.debug("Received some data, ready to upload..................................")
         begin_time = datetime.now()
         buf = QtCore.QByteArray.fromRawData(data)
