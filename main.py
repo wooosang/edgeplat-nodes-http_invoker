@@ -71,7 +71,7 @@ def doStart(endpoint):
                 logging.debug('发送成功!')
             except zmq.error.Again:
                 logging.warning('暂无接收端.')
-
+    pull.close()
     logging.debug("Stopped pull from {}".format(endpoint))
 
 
