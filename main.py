@@ -31,13 +31,15 @@ def doStart(endpoint):
     global stopped
     global upload_config
     pull = context.socket(zmq.PULL)
+    pull.setsockopt(zmq.RCVTIMEO, 1000)
     pull.connect(endpoint)
     stopped = False
     while not stopped:
-        data = pull.recv(timeout=1)
-        if data==[]:
-            logging.debug("no data! continued")
+        try:
+            data = pull.recv()
+        except zmq.error.Again:
             continue
+
         if stopped:
             return
         logging.debug("Received some data, ready to upload..................................")
