@@ -98,7 +98,8 @@ def stop(command):
     global stopped
     stopped = True
     for thread in subscriberThreads:
-        thread._Thread__stop()
+        # thread._Thread__stop()
+        Thread._Thread__stop(thread)
     return 0
 
 
