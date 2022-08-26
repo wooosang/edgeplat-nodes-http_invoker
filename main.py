@@ -17,6 +17,7 @@ context = zmq.Context(7)
 subSocks = []
 stopped=False
 upload_config={}
+subscriberThreads = []
 
 def subscribe(command):
     logging.warning('Not support subscribe!')
@@ -70,15 +71,18 @@ def doStart(endpoint):
 
 
 def start(command):
+    global subscriberThreads
     if 'endpoints' in command:
         endpoints = command['endpoints']
         for endpoint in endpoints:
             consumeThread = threading.Thread(target = doStart,args = (endpoint,))
             consumeThread.start()
+            subscriberThreads.append(consumeThread)
     if 'endpoint' in command:
         endpoint = command['endpoint']
         consumeThread = threading.Thread(target=doStart, args=(endpoint,))
         consumeThread.start()
+        subscriberThreads.append(consumeThread)
     return 0
 
 def config(command):
@@ -93,6 +97,8 @@ def stop(command):
     logging.debug('Stopping......................')
     global stopped
     stopped = True
+    for thread in subscriberThreads:
+        thread.terminate()
     return 0
 
 
