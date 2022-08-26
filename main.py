@@ -49,7 +49,7 @@ def doStart(endpoint):
         end_time = datetime.now()
         upload_cost = end_time - begin_time
         logging.debug("Upload file cost {} ms".format(upload_cost.microseconds / 1000))
-        print(upload_result)
+        logging.debug(upload_result)
         # logging("Upload result: {}".format(upload_result))
         msg = dict()
         for field in msg_context:
