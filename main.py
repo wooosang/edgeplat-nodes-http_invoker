@@ -40,6 +40,7 @@ def doStart(endpoint):
             continue
 
         if stopped:
+            logging.debug("Received stop signal, stopping.................")
             return
         logging.debug("Received some data, ready to upload..................................")
         begin_time = datetime.now()
