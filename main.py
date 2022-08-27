@@ -82,6 +82,7 @@ def start(command):
     if not stopped:
         stopped = True
         time.sleep(1)
+        stopped = False
     else:
         stopped = False
     if 'endpoints' in command:
