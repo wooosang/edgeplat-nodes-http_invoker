@@ -16,7 +16,7 @@ main_logger.addHandler(console_handler)
 
 context = zmq.Context(7)
 subSocks = []
-stopped=False
+stopped=True
 upload_config={}
 
 def subscribe(command):
@@ -32,7 +32,7 @@ def doStart(endpoint):
     pull = context.socket(zmq.PULL)
     pull.setsockopt(zmq.RCVTIMEO, 1000)
     pull.connect(endpoint)
-    stopped = False
+    # stopped = False
     while not stopped:
         try:
             data = pull.recv()
@@ -77,6 +77,12 @@ def doStart(endpoint):
 
 def start(command):
     global subscriberThreads
+    global stopped
+    if not stopped:
+        stopped = True
+        time.sleep(1)
+    else:
+        stopped = False
     if 'endpoints' in command:
         endpoints = command['endpoints']
         for endpoint in endpoints:
