@@ -36,7 +36,7 @@ def doStart(endpoint):
     while not stopped:
         try:
             data = pull.recv()
-            logging.debug("Received some data, length: "+len(data)+", ready to upload..................................")
+            logging.debug("Received some data, length: "+str(len(data))+", ready to upload..................................")
         except zmq.error.Again:
             continue
 
