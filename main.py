@@ -36,13 +36,14 @@ def doStart(endpoint):
     while not stopped:
         try:
             data = pull.recv()
+            logging.debug("Received some data, length: "+len(data)+", ready to upload..................................")
         except zmq.error.Again:
             continue
 
         if stopped:
             logging.debug("Received stop signal, stopping.................")
             return
-        logging.debug("Received some data, ready to upload..................................")
+
         begin_time = datetime.now()
         buf = QtCore.QByteArray.fromRawData(data)
         ds = QtCore.QDataStream(buf)
@@ -53,7 +54,9 @@ def doStart(endpoint):
         # print(int_len_data)
         data = ds.readRawData(int_len_data)
         # files = {'file': ('slice.jpg', data)}
-        upload_response = requests.post(upload_config['url'], files = {"filename": data})
+        sensitivity = 0
+        work_order = '009'
+        upload_response = requests.post(upload_config['url'], files = {"filename": data}, sensitivity = sensitivity, work_order = work_order)
         upload_result = upload_response.text
         end_time = datetime.now()
         upload_cost = end_time - begin_time
