@@ -57,6 +57,7 @@ def doStart(endpoint):
         upload_response = {}
         try:
             upload_response = requests.post(upload_config['url'], files = {"filename": data})
+            logging.debug("Request algorithm succeed! Result: {}".format(upload_response))
         except Exception as e:
             logging.error("Request algorithms error {}".format(e))
         upload_result = upload_response.text
