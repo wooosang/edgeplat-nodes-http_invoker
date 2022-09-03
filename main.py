@@ -54,7 +54,11 @@ def doStart(endpoint):
         # print(int_len_data)
         data = ds.readRawData(int_len_data)
         # files = {'file': ('slice.jpg', data)}
-        upload_response = requests.post(upload_config['url'], files = {"filename": data})
+        upload_response = {}
+        try:
+            upload_response = requests.post(upload_config['url'], files = {"filename": data})
+        except Exception as e:
+            logging.error("Request algorithms error {}".format(e))
         upload_result = upload_response.text
         end_time = datetime.now()
         upload_cost = end_time - begin_time
