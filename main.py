@@ -54,9 +54,7 @@ def doStart(endpoint):
         # print(int_len_data)
         data = ds.readRawData(int_len_data)
         # files = {'file': ('slice.jpg', data)}
-        sensitivity = 0
-        work_order = '009'
-        upload_response = requests.post(upload_config['url'], files = {"filename": data}, sensitivity = sensitivity, work_order = work_order)
+        upload_response = requests.post(upload_config['url'], files = {"filename": data})
         upload_result = upload_response.text
         end_time = datetime.now()
         upload_cost = end_time - begin_time
