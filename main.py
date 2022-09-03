@@ -1,4 +1,4 @@
-import json,socket, logging, threading, traceback
+import json,socket, logging, threading, traceback, gc
 from datetime import datetime
 import requests
 import zmq,time,base64
@@ -58,6 +58,7 @@ def doStart(endpoint):
         try:
             upload_response = requests.post(upload_config['url'], files = {"filename": data})
             logging.debug("Request algorithm succeed! Result: {}".format(upload_response))
+            gc.collect()
         except Exception as e:
             logging.error("Request algorithms error {}".format(e))
         upload_result = upload_response.text
