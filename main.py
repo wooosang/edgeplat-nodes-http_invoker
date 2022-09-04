@@ -4,6 +4,7 @@ import requests
 import zmq,time,base64
 from PyQt5 import QtCore
 from threading import Thread
+from collections import deque
 
 log_file_format = "[%(levelname)s] - %(asctime)s - %(name)s - : %(message)s in %(pathname)s:%(lineno)d"
 log_console_format = "[%(levelname)s] - %(asctime)s - %(pathname)s:%(lineno)d : %(message)s"
@@ -13,6 +14,7 @@ console_handler = logging.StreamHandler()
 console_handler.setLevel(logging.DEBUG)
 console_handler.setFormatter(logging.Formatter(log_console_format))
 main_logger.addHandler(console_handler)
+data_queue = deque(maxlen=3)
 
 context = zmq.Context(7)
 subSocks = []
@@ -23,12 +25,43 @@ def subscribe(command):
     logging.warning('Not support subscribe!')
     return 0
 
+def doSend():
+    global stopped
+    global data_queue
+    global upload_config
+    while not stopped:
+        try:
+            data = data_queue.pop()
+        except IndexError:
+            time.sleep(0.1)
+            continue
+        upload_response = requests.post(upload_config['url'], files={"filename": data})
+        upload_result = upload_response.text
+        end_time = datetime.now()
+        upload_cost = end_time - begin_time
+        logging.debug("Upload file cost {} ms".format(upload_cost.microseconds / 1000))
+        logging.debug(upload_result)
+        # logging("Upload result: {}".format(upload_result))
+        msg = dict()
+        for field in msg_context:
+            msg[field] = msg_context.get(field)
+
+        logging.debug(msg)
+
+        for subsock in subSocks:
+            try:
+                subsock.send_json(msg, zmq.DONTWAIT)
+                logging.debug('发送成功!')
+            except zmq.error.Again:
+                logging.warning('暂无接收端.')
+
 def doStart(endpoint):
     logging.info("Subscribed to {}".format(endpoint))
     global context
     global subSocks
     global stopped
     global upload_config
+    global data_queue
     pull = context.socket(zmq.PULL)
     pull.setsockopt(zmq.RCVTIMEO, 1000)
     pull.connect(endpoint)
@@ -53,25 +86,9 @@ def doStart(endpoint):
         # print(int_len_data)
         data = ds.readRawData(int_len_data)
         # files = {'file': ('slice.jpg', data)}
-        upload_response = requests.post(upload_config['url'], files = {"filename": data})
-        upload_result = upload_response.text
-        end_time = datetime.now()
-        upload_cost = end_time - begin_time
-        logging.debug("Upload file cost {} ms".format(upload_cost.microseconds / 1000))
-        logging.debug(upload_result)
-        # logging("Upload result: {}".format(upload_result))
-        msg = dict()
-        for field in msg_context:
-            msg[field] = msg_context.get(field)
+        data_queue.append(data)
 
-        logging.debug(msg)
 
-        for subsock in subSocks:
-            try:
-                subsock.send_json(msg, zmq.DONTWAIT)
-                logging.debug('发送成功!')
-            except zmq.error.Again:
-                logging.warning('暂无接收端.')
     pull.close()
     logging.debug("Stopped pull from {}".format(endpoint))
 
@@ -85,6 +102,9 @@ def start(command):
         stopped = False
     else:
         stopped = False
+
+    sendThread = threading.Thread(target=doSend)
+    sendThread.start()
     if 'endpoints' in command:
         endpoints = command['endpoints']
         for endpoint in endpoints:
