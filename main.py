@@ -1,4 +1,4 @@
-import json,socket, logging, threading, traceback
+import json,socket, logging, threading, traceback, gc
 from datetime import datetime
 import requests
 import zmq,time,base64
@@ -69,13 +69,14 @@ def doStart(endpoint):
     while not stopped:
         try:
             data = pull.recv()
+            logging.debug("Received some data, length: "+str(len(data))+", ready to upload..................................")
         except zmq.error.Again:
             continue
 
         if stopped:
             logging.debug("Received stop signal, stopping.................")
             return
-        logging.debug("Received some data, ready to upload..................................")
+
         begin_time = datetime.now()
         buf = QtCore.QByteArray.fromRawData(data)
         ds = QtCore.QDataStream(buf)
@@ -86,6 +87,7 @@ def doStart(endpoint):
         # print(int_len_data)
         data = ds.readRawData(int_len_data)
         # files = {'file': ('slice.jpg', data)}
+
         data_queue.append(data)
 
 
