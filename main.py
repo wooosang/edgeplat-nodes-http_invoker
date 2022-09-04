@@ -31,10 +31,11 @@ def doSend():
     global upload_config
     while not stopped:
         try:
-            data = data_queue.pop()
+            data,msg_context = data_queue.pop()
         except IndexError:
             time.sleep(0.1)
             continue
+        begin_time = datetime.now()
         upload_response = requests.post(upload_config['url'], files={"filename": data})
         upload_result = upload_response.text
         end_time = datetime.now()
@@ -77,7 +78,7 @@ def doStart(endpoint):
             logging.debug("Received stop signal, stopping.................")
             return
 
-        begin_time = datetime.now()
+
         buf = QtCore.QByteArray.fromRawData(data)
         ds = QtCore.QDataStream(buf)
         msg_context = json.loads(ds.readQString())
@@ -88,7 +89,7 @@ def doStart(endpoint):
         data = ds.readRawData(int_len_data)
         # files = {'file': ('slice.jpg', data)}
 
-        data_queue.append(data)
+        data_queue.append((data,msg_context))
 
 
     pull.close()
