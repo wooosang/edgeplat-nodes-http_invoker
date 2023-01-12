@@ -36,17 +36,17 @@ def doSend():
             time.sleep(0.1)
             continue
         begin_time = datetime.now()
-        upload_response = requests.post(upload_config['url'], files={"filename": data})
-        upload_result = upload_response.text
+        invoke_response = requests.post(upload_config['url'], files={"filename": data})
+        invoke_result = invoke_response.text
         end_time = datetime.now()
         upload_cost = end_time - begin_time
         logging.debug("Upload file cost {} ms".format(upload_cost.microseconds / 1000))
-        logging.debug(upload_result)
+        logging.debug(invoke_result)
         # logging("Upload result: {}".format(upload_result))
         msg = dict()
         for field in msg_context:
             msg[field] = msg_context.get(field)
-
+        msg['result'] = invoke_result
         logging.debug(msg)
 
         for subsock in subSocks:
