@@ -80,7 +80,7 @@ def doStart(endpoint):
     pull = context.socket(zmq.PULL)
     pull.setsockopt(zmq.RCVTIMEO, 1000)
     pull.connect(endpoint)
-    # stopped = False
+    idx = 1
     while not stopped:
         try:
             data = pull.recv()
@@ -103,18 +103,21 @@ def doStart(endpoint):
         data = ds.readRawData(int_len_data)
         # files = {'file': ('slice.jpg', data)}
 
-        if 'save_path' in invoke_config:
+        if 'saveall' in invoke_config and invoke_config['saveall']:
             currentTime = datetime.datetime.now()
-            basepath = invoke_config['save_path']
+            basepath = '/app'
+            if 'save_path' in invoke_config:
+                basepath = invoke_config['save_path']
             filepath = basepath + '/' + currentTime.strftime("%Y%m%d") + '/' + currentTime.strftime("%H")
             suffix = ".jpg"
             if 'suffix' in invoke_config:
                 suffix = invoke_config['suffix']
-            filename = str(face) + '-' + currentTime.strftime("%Y%m%d%H%M%S%f") + '-' + str(idx) + suffix
+            filename = currentTime.strftime("%Y%m%d%H%M%S%f") + '-' + str(idx) + suffix
             fullfilename = filepath + '/' + filename
             file_write = SaveFileTask(data, fullfilename)
             # starting the task in background
             file_write.start()
+            idx = idx + 1
 
         data_queue.append((data,msg_context))
 
@@ -150,6 +153,8 @@ def config(command):
     global invoke_config
     global context
     invoke_config['url'] = command['url']
+    if 'saveall' in command:
+        invoke_config['saveall'] = command['saveall']
     if 'save_path' in command:
         invoke_config['save_path'] = command['save_path']
     if 'suffix' in command:
@@ -157,13 +162,11 @@ def config(command):
     logging.info("Config succeed!")
     return 0
 
-
 def stop(command):
     logging.debug('Stopping......................')
     global stopped
     stopped = True
     return 0
-
 
 def handleCommand( clientSocket):
     while True:
