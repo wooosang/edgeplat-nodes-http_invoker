@@ -19,7 +19,21 @@ data_queue = deque(maxlen=3)
 context = zmq.Context(7)
 subSocks = []
 stopped=True
-upload_config={}
+invoke_config={}
+
+class SaveFileTask(threading.Thread):
+   def __init__(self, data, filename):
+       # invoking the Base class
+       threading.Thread.__init__(self)
+       self.data = data
+       self.filename = filename
+       os.makedirs(filename[0:filename.rfind("/")], exist_ok=True)
+
+   def run(self):
+      # opening the file in write mode
+      with open(self.filename, 'wb') as file:
+         file.write(self.data)
+
 
 def subscribe(command):
     logging.warning('Not support subscribe!')
@@ -28,7 +42,7 @@ def subscribe(command):
 def doSend():
     global stopped
     global data_queue
-    global upload_config
+    global invoke_config
     while not stopped:
         try:
             data,msg_context = data_queue.pop()
@@ -36,7 +50,7 @@ def doSend():
             time.sleep(0.1)
             continue
         begin_time = datetime.now()
-        invoke_response = requests.post(upload_config['url'], files={"filename": data})
+        invoke_response = requests.post(invoke_config['url'], files={"filename": data})
         invoke_result = invoke_response.text
         end_time = datetime.now()
         upload_cost = end_time - begin_time
@@ -61,7 +75,7 @@ def doStart(endpoint):
     global context
     global subSocks
     global stopped
-    global upload_config
+    global invoke_config
     global data_queue
     pull = context.socket(zmq.PULL)
     pull.setsockopt(zmq.RCVTIMEO, 1000)
@@ -70,7 +84,7 @@ def doStart(endpoint):
     while not stopped:
         try:
             data = pull.recv()
-            logging.debug("Received some data, length: "+str(len(data))+", ready to upload..................................")
+            logging.debug("Received some data, length: "+str(len(data))+", ready to invoke http service..................................")
         except zmq.error.Again:
             continue
 
@@ -88,6 +102,19 @@ def doStart(endpoint):
         # print(int_len_data)
         data = ds.readRawData(int_len_data)
         # files = {'file': ('slice.jpg', data)}
+
+        if 'save_path' in invoke_config:
+            currentTime = datetime.datetime.now()
+            basepath = invoke_config['save_path']
+            filepath = basepath + '/' + currentTime.strftime("%Y%m%d") + '/' + currentTime.strftime("%H")
+            suffix = ".jpg"
+            if 'suffix' in invoke_config:
+                suffix = invoke_config['suffix']
+            filename = str(face) + '-' + currentTime.strftime("%Y%m%d%H%M%S%f") + '-' + str(idx) + suffix
+            fullfilename = filepath + '/' + filename
+            file_write = SaveFileTask(data, fullfilename)
+            # starting the task in background
+            file_write.start()
 
         data_queue.append((data,msg_context))
 
@@ -120,9 +147,13 @@ def start(command):
     return 0
 
 def config(command):
-    global upload_config
+    global invoke_config
     global context
-    upload_config['url'] = command['url']
+    invoke_config['url'] = command['url']
+    if 'save_path' in command:
+        invoke_config['save_path'] = command['save_path']
+    if 'suffix' in command:
+        invoke_config['suffix'] = command['suffix']
     logging.info("Config succeed!")
     return 0
 
@@ -174,7 +205,7 @@ if __name__ == '__main__':
     socket = socket.socket()
     socket.bind(("", 8080))
     socket.listen()
-    logging.info("uploader started......")
+    logging.info("Http_invoker started......")
     while True:
         clientSocket,clientAddress = socket.accept()
         handleCommandThread = threading.Thread(target=handleCommand, args=(clientSocket,))
